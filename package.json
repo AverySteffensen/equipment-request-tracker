@@ -1,0 +1,14 @@
+{
+  "name": "equipment-request-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A small dependency-free application for MIS 4173 Codex practice exercises.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
