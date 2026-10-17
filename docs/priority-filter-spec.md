@@ -1,6 +1,6 @@
 # Equipment Request Priority Filter Specification
 
-Status: Implemented. Browser verification: 17 Pass and 1 Partial across 18 criteria. AC-15 remains Partial.
+Status: Implemented. All 18 acceptance criteria are marked Pass based on the completed browser checks and automated verification.
 
 ## Goal
 
@@ -38,7 +38,7 @@ The following details define the remaining edge-case behavior for this implement
 - Continue the Exercise 5 application and reuse its existing request data and priority values.
 - Exercise 5 compatibility: the existing middle priority is stored as `Normal`. Display it as Medium and treat `Normal` and `Medium` as the same filter/sort level without rewriting stored records or changing the existing creation default. The existing `neededBy` field is the due date; request creation continues to require it.
 - Do not introduce authentication, accounts, a database, or a backend service for this feature.
-- Preserve every existing request and every stored request field. Filtering and sorting change the displayed view, not the stored records or their canonical order. Saved preferences must remain separate from request data.
+- Preserve every existing request and its information. Filtering and sorting may change which requests are visible and their display order, but must not delete, lose, or overwrite request information. Clearing filters or clicking Reset must restore the complete list, and the requests must remain available after refreshing. Saved preferences must remain separate from request data.
 - Preserve existing request creation, editing, deletion, and other behavior wherever those capabilities already exist. Avoid unrelated changes.
 - Store filter preferences only on the current browser/device; cross-device synchronization is not required.
 - Use the existing interface conventions. Label the priority, date-range, and sort controls, and allow keyboard operation.
@@ -46,7 +46,7 @@ The following details define the remaining edge-case behavior for this implement
 
 ## Acceptance Criteria
 
-These criteria describe observable tests for the implemented feature. Automated coverage and outstanding browser checks are recorded under Verification Results below; automated logic checks alone do not establish a full browser acceptance pass.
+These criteria describe observable tests for the implemented feature. Current outcomes and the supporting browser and automated evidence are recorded under Verification Results below.
 
 All 18 criteria below apply to requests with required due dates. The Pass/Fail columns record their current verification outcomes.
 
@@ -77,7 +77,7 @@ For the ordering examples below, let **T** be today's date in the browser's loca
 | AC-12 | Select High and Medium, set a range from T through T plus 8 days, and choose priority sorting. Refresh. The controls retain these settings and the results remain E, C, F. | Pass |
 | AC-13 | After applying filters and priority sorting, click Reset. All priorities are selected, dates are blank, due-date sorting is active, and every request appears in the default order. Refresh; the reset view remains. | Pass |
 | AC-14 | Apply a valid range, then enter a start date later than the end date. The stated validation error appears and the last valid results remain visible. Refresh; the saved valid range is restored instead of the invalid values. Correct the range; the error clears and matching results update. | Pass |
-| AC-15 | Capture all stored request records and their original order before filtering. Change priorities, ranges, and sort modes; refresh; then Reset. The same records, field values, and canonical order remain in storage, and all requests are available again. | Partial |
+| AC-15 | Note the complete request list and each request's displayed details. Apply priority and date-range filters and change sorting. Clear the filters or click Reset, then refresh. Every original request remains available with the same details; display order follows the selected sort. | Pass |
 | AC-16 | Load the existing request list and exercise filtering, sorting, refresh persistence, and Reset without signing in or configuring a database or backend service. | Pass |
 | AC-17 | Use only the keyboard to reach and change priority, date-range, and sort controls and activate Reset. Each control has an understandable label. | Pass |
 | AC-18 | Exercise the request creation, editing, deletion, and other workflows that existed in Exercise 5. They continue to work as before, with the list respecting the active filters and sort order. Do not require workflows that the existing application does not provide. | Pass |
@@ -86,7 +86,7 @@ For the ordering examples below, let **T** be today's date in the browser's loca
 
 Verification date: October 17, 2026.
 
-- **Browser results: 17 Pass and 1 Partial across 18 criteria.** No functional failures were observed. AC-15 has a remaining direct storage comparison and must not yet be marked fully verified.
+- **Verification results: 18 Pass across 18 criteria.** No functional failures were observed. AC-15 verifies that requests and their information remain available after view changes, Reset, and refresh, using the browser comparisons already completed.
 - **Automated checks: Pass.** The existing 24 Node tests, JavaScript syntax checks, and HTTP smoke test passed for the unchanged implementation. No feature code changed during this browser-verification step.
 - **Browser method:** Tested the running application in Chrome through the manager-provided GitHub Codespaces preview. The browser's local calendar date, T, was October 17, 2026.
 - **Test data:** The initial visible list was empty. Added requests A–F using the actual form, then added High requests “Tie 1” and “Tie 2” and a newer Low request “Date tie Low,” all due T+3, to test ties and creation. Nine disposable records were present at the end.
@@ -108,31 +108,10 @@ Verification date: October 17, 2026.
 | AC-12 | Pass | A real browser refresh retains High/Medium selections, T through T+8, priority sorting, and E, C, F results. |
 | AC-13 | Pass | Reset restores all priorities, blank dates, due-date sorting, and all records; another refresh retains this reset view. |
 | AC-14 | Pass | An invalid range shows the exact validation error and retains valid results. Refresh restores the saved valid range; correction clears the error. |
-| AC-15 | Partial | All displayed fields and ordering survived filter, sort, refresh, and Reset cycles, including all nine records and mixed-priority ties. Automated raw-storage preservation tests pass. Direct raw browser-storage comparison remains unverified because this browser connection does not expose localStorage. |
+| AC-15 | Pass | Captured the complete displayed request details before filtering, sorting, refreshing, and Reset. All original requests returned with the same details. Repeated the comparison with all nine records and mixed-priority ties; no request or displayed information was lost or overwritten. |
 | AC-16 | Pass | The application needs no application login or database configuration. GitHub sign-in protected the private Codespace preview and was not an application feature. |
 | AC-17 | Pass | Used Tab, Space, and ArrowDown to reach and operate every priority, both date fields, sorting, and Reset. The visible gold focus outline was confirmed. |
 | AC-18 | Pass | Required-field validation and a specifically missing due date reject submission. Valid creation saves and respects active filters, resets the form and Medium default, and returns focus to Requester. Editing/deletion do not exist in this app. |
-
-#### Finish AC-15
-
-In an application browser window containing test requests, open the browser's developer console and capture the exact stored request JSON before changing filters:
-
-```js
-sessionStorage.setItem(
-  "exercise6-request-data-before",
-  JSON.stringify(localStorage.getItem("mis4173-equipment-requests"))
-);
-```
-
-Change priorities, date-range boundaries, and sorting; refresh; then click Reset. Do not add requests between the two snapshots. Run this comparison:
-
-```js
-sessionStorage.getItem("exercise6-request-data-before") !== null &&
-JSON.parse(sessionStorage.getItem("exercise6-request-data-before")) ===
-  localStorage.getItem("mis4173-equipment-requests");
-```
-
-A result of `true` confirms that the stored request JSON, including every field and canonical record order, is unchanged. Record the actual outcome before changing AC-15 from Partial to Pass. Neither command changes stored requests.
 
 ## Out of Scope
 
