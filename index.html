@@ -70,7 +70,7 @@
             <label for="priority">Priority</label>
             <select id="priority" name="priority" required>
               <option value="Low">Low</option>
-              <option value="Normal" selected>Normal</option>
+              <option value="Normal" selected>Medium</option>
               <option value="High">High</option>
             </select>
           </div>
@@ -100,12 +100,48 @@
             <p class="step-label">Current workload</p>
             <h2 id="request-list-title">Equipment requests</h2>
           </div>
-          <p id="request-count" class="request-count">0 requests</p>
+          <p id="request-count" class="request-count" aria-live="polite">0 requests</p>
         </div>
 
-        <div id="empty-state" class="empty-state">
-          <h3>No requests yet</h3>
-          <p>Add the first equipment request using the form.</p>
+        <form id="request-filters" class="request-filters" aria-label="Filter equipment requests" novalidate>
+          <fieldset class="priority-filters">
+            <legend>Priorities</legend>
+            <div class="priority-options">
+              <label><input type="checkbox" name="priorities" value="Low" checked /> Low</label>
+              <label><input type="checkbox" name="priorities" value="Medium" checked /> Medium</label>
+              <label><input type="checkbox" name="priorities" value="High" checked /> High</label>
+            </div>
+          </fieldset>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="filter-start">Due on or after</label>
+              <input id="filter-start" name="startDate" type="date" aria-describedby="filter-message" />
+            </div>
+            <div class="field">
+              <label for="filter-end">Due on or before</label>
+              <input id="filter-end" name="endDate" type="date" aria-describedby="filter-message" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="request-sort">Sort requests</label>
+            <select id="request-sort" name="sort">
+              <option value="due-date">Due date: soonest first</option>
+              <option value="priority">Priority: High to Low</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button id="reset-filters" type="button">Reset</button>
+            <p id="filter-message" class="form-message error" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+
+        <div id="empty-state" class="empty-state" role="status" aria-live="polite">
+          <h3 id="empty-heading">No requests yet</h3>
+          <p>No requests fit those specifications.</p>
+          <p id="empty-help">Add the first equipment request using the form.</p>
         </div>
 
         <div id="request-table-wrapper" class="table-wrapper" hidden>
