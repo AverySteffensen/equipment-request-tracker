@@ -1,5 +1,10 @@
 export const STORAGE_KEY = "mis4173-equipment-requests";
-const PRIORITIES = ["Low", "Normal", "High"];
+export const FILTER_STORAGE_KEY = "mis4173-equipment-request-filters";
+export const FILTER_PRIORITIES = ["Low", "Medium", "High"];
+export const DATE_RANGE_ERROR = "Start date must be on or before end date.";
+// Exercise 5 stored the middle priority as Normal. Keep it readable and unchanged.
+const PRIORITIES = ["Low", "Normal", "Medium", "High"];
+const PRIORITY_RANK = { High: 0, Medium: 1, Low: 2 };
 
 export class RequestValidationError extends Error {
   constructor(errors) {
@@ -22,7 +27,7 @@ export function validateRequest(input = {}) {
   if (!clean(input.neededBy)) errors.neededBy = "Select the date needed.";
   if (!clean(input.reason)) errors.reason = "Enter a business reason.";
   if (input.priority !== undefined && !PRIORITIES.includes(clean(input.priority))) {
-    errors.priority = "Select Low, Normal, or High priority.";
+    errors.priority = "Select Low, Medium, or High priority.";
   }
 
   return errors;
@@ -80,6 +85,98 @@ export function loadRequests(storage = globalThis.localStorage) {
 export function saveRequests(requests, storage = globalThis.localStorage) {
   if (!storage) return;
   storage.setItem(STORAGE_KEY, JSON.stringify(requests));
+}
+
+export function defaultFilters() {
+  return {
+    priorities: [...FILTER_PRIORITIES],
+    startDate: "",
+    endDate: "",
+    sort: "due-date",
+  };
+}
+
+export function localDateString(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function requestPriority(request) {
+  return request.priority === "Normal" ? "Medium" : request.priority;
+}
+
+export function dueDate(request) {
+  // Needed-by dates are calendar dates, even if a legacy value includes a time.
+  return typeof request.neededBy === "string" ? request.neededBy.slice(0, 10) : "";
+}
+
+export function validateDateRange(filters) {
+  return filters.startDate && filters.endDate && filters.startDate > filters.endDate
+    ? DATE_RANGE_ERROR
+    : "";
+}
+
+export function filterAndSortRequests(requests, filters, today = localDateString()) {
+  const matches = requests.filter((request) => {
+    const date = dueDate(request);
+    return (
+      filters.priorities.includes(requestPriority(request)) &&
+      (!filters.startDate || (date && date >= filters.startDate)) &&
+      (!filters.endDate || (date && date <= filters.endDate))
+    );
+  });
+
+  return matches.sort((first, second) => {
+    const firstDate = dueDate(first);
+    const secondDate = dueDate(second);
+
+    if (filters.sort === "priority") {
+      const firstOverdue = Boolean(firstDate && firstDate < today);
+      const secondOverdue = Boolean(secondDate && secondDate < today);
+      if (firstOverdue !== secondOverdue) return firstOverdue ? -1 : 1;
+
+      const priorityDifference =
+        PRIORITY_RANK[requestPriority(first)] - PRIORITY_RANK[requestPriority(second)];
+      if (priorityDifference) return priorityDifference;
+    }
+
+    // In priority mode this comparison happens within the same priority group.
+    if (!firstDate && secondDate) return 1;
+    if (firstDate && !secondDate) return -1;
+    return firstDate.localeCompare(secondDate);
+  });
+}
+
+export function loadFilterPreferences(storage = globalThis.localStorage) {
+  const defaults = defaultFilters();
+  if (!storage) return defaults;
+
+  try {
+    const parsed = JSON.parse(storage.getItem(FILTER_STORAGE_KEY));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return defaults;
+
+    const isDate = (value) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+    const filters = {
+      priorities: Array.isArray(parsed.priorities)
+        ? FILTER_PRIORITIES.filter((priority) => parsed.priorities.includes(priority))
+        : defaults.priorities,
+      startDate: isDate(parsed.startDate) ? parsed.startDate : "",
+      endDate: isDate(parsed.endDate) ? parsed.endDate : "",
+      sort: parsed.sort === "priority" ? "priority" : "due-date",
+    };
+
+    return validateDateRange(filters) ? defaults : filters;
+  } catch {
+    return defaults;
+  }
+}
+
+export function saveFilterPreferences(filters, storage = globalThis.localStorage) {
+  if (!storage || validateDateRange(filters)) return false;
+  storage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+  return true;
 }
 
 function isRequestRecord(value) {

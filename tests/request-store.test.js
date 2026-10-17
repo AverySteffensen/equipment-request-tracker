@@ -60,7 +60,7 @@ test("createRequest reports missing required fields", () => {
 });
 
 test("createRequest accepts each priority and trims it", () => {
-  for (const priority of ["Low", "Normal", "High"]) {
+  for (const priority of ["Low", "Normal", "Medium", "High"]) {
     const request = createRequest({ ...validInput, priority: `  ${priority}  ` });
     assert.equal(request.priority, priority);
   }
@@ -72,7 +72,7 @@ test("createRequest rejects unsupported priority values", () => {
       () => createRequest({ ...validInput, priority }),
       (error) => {
         assert.ok(error instanceof RequestValidationError);
-        assert.deepEqual(error.errors, { priority: "Select Low, Normal, or High priority." });
+        assert.deepEqual(error.errors, { priority: "Select Low, Medium, or High priority." });
         return true;
       },
     );
