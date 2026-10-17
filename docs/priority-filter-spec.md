@@ -1,6 +1,6 @@
 # Equipment Request Priority Filter Specification
 
-Status: Implemented. Automated business and storage checks pass; full browser acceptance verification remains pending.
+Status: Implemented. Browser verification: 17 Pass; AC-16 Partial; AC-09 and AC-20 Not applicable.
 
 ## Goal
 
@@ -48,7 +48,7 @@ The following details define the remaining edge-case behavior for this implement
 
 These criteria describe observable tests for the implemented feature. Automated coverage and outstanding browser checks are recorded under Verification Results below; automated logic checks alone do not establish a full browser acceptance pass.
 
-Scope correction from the manager, October 17, 2026: a due date is required to submit a request, so undated-request scenarios are not needed for browser acceptance. AC-09 and AC-20 are marked Not applicable and their identifiers are retained for traceability. The remaining 18 criteria still require browser confirmation. Defensive empty-date handling and its existing automated tests are retained.
+Scope correction from the manager, October 17, 2026: a due date is required to submit a request, so undated-request scenarios are not needed for browser acceptance. AC-09 and AC-20 are marked Not applicable and their identifiers are retained for traceability. The remaining 18 criteria are applicable; their latest verification outcomes are recorded below. Defensive empty-date handling and its existing automated tests are retained.
 
 For the ordering examples below, let **T** be today's date in the browser's local calendar. Use disposable test data in the following existing order; do not replace or delete real requests to create the fixture. Unless a criterion specifies otherwise, begin with this fixture, all priorities selected, no date range, and the default due-date sort.
 
@@ -88,36 +88,55 @@ For the ordering examples below, let **T** be today's date in the browser's loca
 
 Verification date: October 17, 2026.
 
-- **Pass:** `npm test` runs 24 tests with no failures, including the existing request-creation and storage regression tests and the new `tests/priority-filter.test.js` cases.
-- **Pass:** `node --check src/app.js` and `node --check src/request-store.js` report no syntax errors.
-- **Pass:** An HTTP smoke test starts the existing server and confirms that the HTML page, stylesheet, and both JavaScript modules return HTTP 200 with the correct content types.
-- **Pass, source review:** The diff adds no dependencies, frameworks, authentication, database, or external services. Request data and filter preferences use separate storage keys; filtering sorts a derived array. User-provided table values still use `textContent`.
-- **Not verified:** Full browser acceptance, including control interaction, layout, keyboard navigation, and actual browser refresh. The local runtime has no browser executable and its official browser download returned an unavailable-site page. The cloud browser cannot reach the local development server; automatic approval review rejected the temporary local-file preview because only HTTP and HTTPS URLs are permitted. These are environment limitations, not evidence that the feature passed its browser checks.
+- **Browser results: 17 Pass, 1 Partial, 2 Not applicable.** No functional failures were observed. AC-16 has a remaining direct storage comparison and must not yet be marked fully verified.
+- **Automated checks: Pass.** The existing 24 Node tests, JavaScript syntax checks, and HTTP smoke test passed for the unchanged implementation. No feature code changed during this browser-verification step.
+- **Browser method:** Tested the running application in Chrome through the manager-provided GitHub Codespaces preview. The browser's local calendar date, T, was October 17, 2026.
+- **Test data:** The initial visible list was empty. Added requests A–F using the actual form, then added High requests “Tie 1” and “Tie 2” and a newer Low request “Date tie Low,” all due T+3, to test ties and creation. Nine disposable records were present at the end. No undated records were needed.
+- **Coverage:** Interacted with the actual controls and form, refreshed the actual page, compared complete displayed rows before and after filter/reset cycles, and operated controls with native keyboard input. No application errors appeared in the captured preview error logs.
 
-Run `npm start` and open `http://127.0.0.1:8000` locally to complete the 18 applicable numbered browser checks above using disposable requests A–F. No undated fixtures or browser-storage edits to remove due dates are required. AC-09 and AC-20 are Not applicable, not verified passes.
-
-| Criterion | Passing automated evidence | Browser check still required |
+| Criterion | Result | Evidence |
 | --- | --- | --- |
-| AC-01 | Default filter state and ascending due-date ordering. | Verify the initial controls and rendered rows A–F. |
-| AC-02 | Overdue, due-today, and future ordering; local calendar date handling. | Verify the displayed order. |
-| AC-03 | Single and multiple selected priorities; legacy `Normal` matches Medium. | Select High, then add Medium, and compare the rows. |
-| AC-04 | An empty selection matches none and persists in simulated storage. | Deselect and reselect the controls; verify the message and restored list. |
-| AC-05 | Both date endpoints are inclusive. | Enter the stated start and end dates. |
-| AC-06 | An equal start and end match one day. | Verify only D is displayed. |
-| AC-07 | Start-only, end-only, and unrestricted results. | Clear each boundary and compare the displayed results. |
-| AC-08 | Priority and date restrictions combine. | Select the stated priorities and range. |
-| AC-09 | Existing defensive tests remain in the suite. | **Not applicable:** due date is required for submission. |
-| AC-10 | An out-of-range query returns no records; the exact message exists in the HTML. | Verify the message is visible and Reset remains usable. |
-| AC-11 | Priority and due-date comparators pass automated checks. | With A–F, verify priority order A, B, E, C, F, D and default order A, B, C, D, E, F. |
-| AC-12 | Exact ties preserve relative order; due-date ties ignore priority. | Verify repeated sorting does not change tied rows' relative order. |
-| AC-13 | Valid filters and sort round-trip through simulated storage and retain E, C, F. | Refresh the actual browser and verify both controls and rows. |
-| AC-14 | Saving default preferences restores unrestricted settings. | Click Reset and refresh the browser. |
-| AC-15 | Invalid ranges produce the specified error and cannot overwrite saved valid preferences. | Verify the visible error, retained results, correction, and refresh behavior. |
-| AC-16 | Request fields, raw stored request JSON, and canonical order remain unchanged during filtering and preference writes. | Compare actual browser request storage before and after the stated actions. |
-| AC-17 | Source and dependency review; application HTTP serving works without configured accounts or a database. | Exercise the page without signing in or configuring a service. |
-| AC-18 | Source review confirms native controls, labels, and focus styles. | Complete the full keyboard-only interaction and visible-focus check. |
-| AC-19 | Existing request validation, creation, append order, and storage regression tests pass. | Add requests through the form with filters active; check validation and form reset. Editing and deletion are not existing workflows. |
-| AC-20 | Existing defensive tests remain in the suite. | **Not applicable:** due date is required for submission. |
+| AC-01 | Pass | Fresh browser defaults: all priorities selected, dates blank, due-date sort, and A–F displayed in order. |
+| AC-02 | Pass | Overdue A and B precede today C and future D, E, F in ascending due-date order. |
+| AC-03 | Pass | High alone displays A, E; adding Medium displays A, C, E, F immediately. |
+| AC-04 | Pass | No priorities produces the exact no-results message; selecting all restores A–F. |
+| AC-05 | Pass | T through T+5 includes both endpoints and displays C, D, E. |
+| AC-06 | Pass | Both boundaries at T+2 display only D. |
+| AC-07 | Pass | Start-only displays D, E, F; end-only displays A, B, C; clearing both restores all. |
+| AC-08 | Pass | High and Medium combined with T through T+5 display only C, E. |
+| AC-09 | Not applicable | Undated-request scenarios were excluded because request submission requires a due date. |
+| AC-10 | Pass | An unmatched range displays the exact message, hides the empty table, and retains working controls and Reset. |
+| AC-11 | Pass | Priority sorting displays A, B, E, C, F, D; switching back restores A–F. |
+| AC-12 | Pass | Two tied High requests keep their relative order through repeated sorting and refresh. A newer Low request with the same due date stays ahead of those High requests in due-date mode, preserving original tie order. |
+| AC-13 | Pass | A real browser refresh retains High/Medium selections, T through T+8, priority sorting, and E, C, F results. |
+| AC-14 | Pass | Reset restores all priorities, blank dates, due-date sorting, and all records; another refresh retains this reset view. |
+| AC-15 | Pass | An invalid range shows the exact validation error and retains valid results. Refresh restores the saved valid range; correction clears the error. |
+| AC-16 | Partial | All displayed fields and ordering survived filter, sort, refresh, and Reset cycles, including all nine records and mixed-priority ties. Automated raw-storage preservation tests pass. Direct raw browser-storage comparison remains unverified because this browser connection does not expose localStorage. |
+| AC-17 | Pass | The application needs no application login or database configuration. GitHub sign-in protected the private Codespace preview and was not an application feature. |
+| AC-18 | Pass | Used Tab, Space, and ArrowDown to reach and operate every priority, both date fields, sorting, and Reset. The visible gold focus outline was confirmed. |
+| AC-19 | Pass | Required-field validation and a specifically missing due date reject submission. Valid creation saves and respects active filters, resets the form and Medium default, and returns focus to Requester. Editing/deletion do not exist in this app. |
+| AC-20 | Not applicable | The undated High example was excluded because request submission requires a due date. |
+
+#### Finish AC-16
+
+In an application browser window containing test requests, open the browser's developer console and capture the exact stored request JSON before changing filters:
+
+```js
+sessionStorage.setItem(
+  "exercise6-request-data-before",
+  JSON.stringify(localStorage.getItem("mis4173-equipment-requests"))
+);
+```
+
+Change priorities, date-range boundaries, and sorting; refresh; then click Reset. Do not add requests between the two snapshots. Run this comparison:
+
+```js
+sessionStorage.getItem("exercise6-request-data-before") !== null &&
+JSON.parse(sessionStorage.getItem("exercise6-request-data-before")) ===
+  localStorage.getItem("mis4173-equipment-requests");
+```
+
+A result of `true` confirms that the stored request JSON, including every field and canonical record order, is unchanged. Record the actual outcome before changing AC-16 from Partial to Pass. Neither command changes stored requests.
 
 ## Out of Scope
 
