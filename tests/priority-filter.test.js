@@ -61,19 +61,19 @@ test("AC-07: either range endpoint may be omitted and clearing the range restore
   assert.deepEqual(ids({ startDate: "", endDate: "" }), ["A", "B", "C", "D", "E", "F", "G", "H"]);
 });
 
-test("AC-08/09/10: priority and range restrictions combine and exclude undated requests", () => {
+test("AC-08/09: priority and range restrictions combine and exclude undated requests", () => {
   assert.deepEqual(ids({ priorities: ["High", "Medium"], startDate: today, endDate: "2026-10-22" }), ["C", "E"]);
   assert.deepEqual(ids({ startDate: "2020-01-01" }), ["A", "B", "C", "D", "E", "F"]);
   assert.deepEqual(ids({ endDate: "2030-01-01" }), ["A", "B", "C", "D", "E", "F"]);
   assert.deepEqual(ids({ startDate: "2026-11-06", endDate: "2026-11-07" }), []);
 });
 
-test("AC-11: priority sorting keeps overdue first and undated requests within their priority", () => {
+test("AC-10: priority sorting keeps overdue first and undated requests within their priority", () => {
   assert.deepEqual(ids({ sort: "priority" }), ["A", "B", "E", "G", "C", "F", "D", "H"]);
   assert.deepEqual(ids(), ["A", "B", "C", "D", "E", "F", "G", "H"]);
 });
 
-test("AC-12: exact ties and undated ties preserve existing relative order", () => {
+test("AC-11: exact ties and undated ties preserve existing relative order", () => {
   const tied = [
     { id: "first", priority: "High", neededBy: today },
     { id: "second", priority: "High", neededBy: today },
@@ -89,7 +89,7 @@ test("AC-12: exact ties and undated ties preserve existing relative order", () =
   ]), ["low-first", "high-second"]);
 });
 
-test("AC-13/14: valid filters and sort persist and saving Reset restores defaults", () => {
+test("AC-12/13: valid filters and sort persist and saving Reset restores defaults", () => {
   const storage = new MemoryStorage();
   const filters = {
     priorities: ["Medium", "High"], startDate: today, endDate: "2026-10-25", sort: "priority",
@@ -107,7 +107,7 @@ test("an empty priority selection survives preference persistence", () => {
   assert.deepEqual(loadFilterPreferences(storage).priorities, []);
 });
 
-test("AC-15: invalid ranges are rejected without overwriting saved valid preferences", () => {
+test("AC-14: invalid ranges are rejected without overwriting saved valid preferences", () => {
   const storage = new MemoryStorage();
   const valid = { ...defaultFilters(), startDate: today, endDate: "2026-10-22" };
   saveFilterPreferences(valid, storage);
@@ -128,7 +128,7 @@ test("damaged or unavailable preference storage safely falls back to defaults", 
   assert.deepEqual(loadFilterPreferences({ getItem() { throw new Error("blocked"); } }), defaultFilters());
 });
 
-test("AC-16: filtering and preference writes preserve all request fields and canonical ordering", () => {
+test("AC-15: filtering and preference writes preserve all request fields and canonical ordering", () => {
   const storage = new MemoryStorage();
   const records = requests.map((request) => ({
     ...request, requester: request.id, department: "Operations", equipment: "Laptop",
@@ -164,7 +164,7 @@ test("local calendar dates and due-date comparisons ignore time-of-day differenc
   ]), ["late", "early"]);
 });
 
-test("AC-20: undated High follows three dated High requests before lower priorities", () => {
+test("undated High follows three dated High requests before lower priorities", () => {
   const sample = [
     { id: "medium", priority: "Medium", neededBy: "2026-10-18" },
     { id: "undated-high", priority: "High", neededBy: "" },
