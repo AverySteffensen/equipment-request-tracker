@@ -1,0 +1,4 @@
+interface:
+  display_name: "Requirements Reviewer"
+  short_description: "Compare feature specifications with code and tests"
+  default_prompt: "Use $requirements-reviewer to review this feature against its specification. Do not change files."
